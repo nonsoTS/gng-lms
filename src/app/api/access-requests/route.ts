@@ -20,6 +20,21 @@ const bodySchema = z.object({
   turnstileToken: z.string().optional(),
 });
 
+// Called cross-origin, directly from a browser on the marketing site (and
+// its preview deployments), never with cookies — the bearer secret below is
+// the real auth boundary, not same-origin-ness. A wildcard origin doesn't
+// weaken that, and lets the marketing site move between preview/production
+// domains without this route needing to know about each one.
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+function jsonWithCors(body: unknown, init?: { status?: number }) {
+  return NextResponse.json(body, { ...init, headers: CORS_HEADERS });
+}
+
 function isAuthorized(request: NextRequest): boolean {
   const header = request.headers.get("authorization") ?? "";
   const [scheme, token] = header.split(" ");
@@ -31,9 +46,13 @@ function isAuthorized(request: NextRequest): boolean {
   return timingSafeEqual(expected, actual);
 }
 
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
+}
+
 export async function POST(request: NextRequest) {
   if (!isAuthorized(request)) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    return jsonWithCors({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
   const [{ recentCount }] = await db
@@ -42,22 +61,19 @@ export async function POST(request: NextRequest) {
     .where(gt(accessRequests.createdAt, new Date(Date.now() - RATE_LIMIT_WINDOW_MS)));
 
   if (recentCount >= RATE_LIMIT_MAX) {
-    return NextResponse.json({ ok: false, error: "Too many requests" }, { status: 429 });
+    return jsonWithCors({ ok: false, error: "Too many requests" }, { status: 429 });
   }
 
   const json = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "Invalid request body" }, { status: 400 });
+    return jsonWithCors({ ok: false, error: "Invalid request body" }, { status: 400 });
   }
   const { email, name, message, turnstileToken } = parsed.data;
 
   const captchaOk = await verifyTurnstileToken(turnstileToken);
   if (!captchaOk) {
-    return NextResponse.json(
-      { ok: false, error: "Captcha verification failed" },
-      { status: 400 },
-    );
+    return jsonWithCors({ ok: false, error: "Captcha verification failed" }, { status: 400 });
   }
 
   const [existingPending] = await db
@@ -69,5 +85,5 @@ export async function POST(request: NextRequest) {
     await db.insert(accessRequests).values({ email, name, message: message ?? null });
   }
 
-  return NextResponse.json({ ok: true });
+  return jsonWithCors({ ok: true });
 }
