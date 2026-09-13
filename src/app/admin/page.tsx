@@ -4,6 +4,7 @@ const LINKS = [
   { href: "/admin/courses", label: "Manage courses", description: "Modules, lessons, and formats" },
   { href: "/admin/users", label: "Users", description: "Invite, promote, deactivate" },
   { href: "/admin/access-requests", label: "Access requests", description: "Review pending sign-up requests" },
+  { href: "/admin/docs", label: "Docs", description: "Admin guide and troubleshooting" },
 ];
 
 export default function AdminPage() {

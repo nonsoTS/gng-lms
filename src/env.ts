@@ -13,8 +13,11 @@ const envSchema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().min(1),
   R2_BUCKET_NAME: z.string().min(1),
   ACCESS_REQUEST_SHARED_SECRET: z.string().min(1),
-  // Optional: no real Cloudflare Turnstile site provisioned yet. The access-request
-  // endpoint skips captcha verification (rate-limiting still applies) until this is set.
+  // Optional by design, not just pending setup: verifyTurnstileToken() skips
+  // captcha verification (rate-limiting still applies) whenever this is
+  // unset, which keeps local/preview environments working without needing
+  // their own Turnstile site. Set in production, where it's genuinely
+  // enforced.
   TURNSTILE_SECRET_KEY: z.string().optional(),
   // Optional: no real Paystack donation page set up yet. The donation banner
   // (src/components/donation-prompt.tsx) just doesn't render until this is set.

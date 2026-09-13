@@ -49,11 +49,16 @@ export default async function CoursesPage() {
     <main className="mx-auto max-w-3xl p-6 sm:p-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-step-3 font-serif font-semibold text-ink">Courses</h1>
-        {session.user.role === "admin" && (
-          <Link href="/admin" className="text-step-0 text-primary hover:underline">
-            Admin
+        <div className="flex items-center gap-4">
+          <Link href="/help" className="text-step-0 text-primary hover:underline">
+            Help
           </Link>
-        )}
+          {session.user.role === "admin" && (
+            <Link href="/admin" className="text-step-0 text-primary hover:underline">
+              Admin
+            </Link>
+          )}
+        </div>
       </div>
 
       {coursesWithCovers.length === 0 && (
