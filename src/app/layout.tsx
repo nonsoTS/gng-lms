@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, Public_Sans, Geist_Mono } from "next/font/google";
 import { AudioPlayerProvider } from "@/components/audio-player-context";
 import "./globals.css";
+import Script from "next/script";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -34,6 +35,18 @@ export default function RootLayout({
       className={`${fraunces.variable} ${publicSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-50YBS6WHXQ"
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-50YBS6WHXQ');
+          `}
+        </Script>
         <AudioPlayerProvider>{children}</AudioPlayerProvider>
       </body>
     </html>
