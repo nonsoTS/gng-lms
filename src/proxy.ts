@@ -8,11 +8,15 @@ const PUBLIC_PATHS = ["/sign-in"];
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  const sessionCookie = getSessionCookie(request);
+
   if (PUBLIC_PATHS.some((path) => pathname === path)) {
+    if (sessionCookie) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
     return NextResponse.next();
   }
 
-  const sessionCookie = getSessionCookie(request);
   if (!sessionCookie) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }

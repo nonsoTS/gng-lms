@@ -1,3 +1,6 @@
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { SignInForm } from "./sign-in-form";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -11,9 +14,13 @@ export default async function SignInPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (session) {
+    redirect("/");
+  }
+
   const { error } = await searchParams;
   const linkError = error ? (ERROR_MESSAGES[error] ?? DEFAULT_LINK_ERROR) : undefined;
-  console.log('error signin= ', error);
 
   return <SignInForm initialError={linkError} />;
 }
